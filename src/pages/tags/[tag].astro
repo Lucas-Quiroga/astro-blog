@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogPost from "../../components/BlogPost.astro";
+
+//Esta función getStaticPaths es una función especial de Astro que genera rutas estáticas para cada etiqueta única en tus publicaciones de blog. Primero, obtiene todas las publicaciones de blog, luego extrae todas las etiquetas únicas de esas publicaciones. Para cada etiqueta, filtra las publicaciones que incluyen esa etiqueta y devuelve un objeto con los parámetros de ruta y las props para esa página.
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob("../posts/*.md");
+  const uniqueTags = [
+    ...new Set(allPosts.flatMap((post) => post.frontmatter.tags)),
+  ];
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) =>
+      post.frontmatter.tags.includes(tag)
+    );
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+
+<BaseLayout pageTitle={tag}>
+  <p>Entradas etiquetadas con {tag}</p>
+  <ul>
+    {posts.map((post) => <BlogPost post={post} />)}
+  </ul>
+</BaseLayout>
